@@ -1,53 +1,52 @@
 <?php
-// Путь к файлу с задачами
-$tasksFile = __DIR__ . '/../storage/tasks.txt';
-$tasks = [];
+/**
+ * Единая точка входа для приложения
+ */
+require_once __DIR__ . '/../src/helpers.php';
+require_once __DIR__ . '/../src/db.php';
 
-// Читаем задачи из файла, если он существует
-if (file_exists($tasksFile) && filesize($tasksFile) > 0) {
-    $tasks = file($tasksFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $tasks = array_map('json_decode', $tasks); // Преобразуем строки JSON в массив
-    $tasks = array_filter($tasks); // Убираем пустые элементы
+// Определяем маршрут
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$method = $_SERVER['REQUEST_METHOD'];
+
+switch ($uri) {
+    case '/':
+    case '/index':
+        $tasks = getTasks($pdo, 2); // Последние 2 задачи
+        render('index', ['tasks' => $tasks]);
+        break;
+    case '/tasks':
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $tasks = getTasks($pdo, 5, $page);
+        $totalTasks = getTotalTasks($pdo);
+        $totalPages = ceil($totalTasks / 5);
+        render('tasks/index', ['tasks' => $tasks, 'page' => $page, 'totalPages' => $totalPages]);
+        break;
+    case '/task/create':
+        if ($method === 'POST') {
+            require_once __DIR__ . '/../src/handlers/task/create.php';
+        } else {
+            render('task/create', ['categories' => getCategories($pdo)]);
+        }
+        break;
+    case '/task/edit':
+        if ($method === 'POST') {
+            require_once __DIR__ . '/../src/handlers/task/edit.php';
+        } else {
+            $id = (int)$_GET['id'];
+            $task = getTaskById($pdo, $id);
+            render('task/edit', ['task' => $task, 'categories' => getCategories($pdo)]);
+        }
+        break;
+    case '/task/delete':
+        require_once __DIR__ . '/../src/handlers/task/delete.php';
+        break;
+    case '/task/show':
+        $id = (int)$_GET['id'];
+        $task = getTaskById($pdo, $id);
+        render('task/show', ['task' => $task]);
+        break;
+    default:
+        http_response_code(404);
+        echo '404 Not Found';
 }
-
-// Берем последние 2 задачи
-$latestTasks = array_slice($tasks, -2);
-?>
-
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Система управления задачами</title>
-</head>
-<body>
-    <nav>
-        <a href="index.php">Главная</a> |
-        <a href="task/index.php">Все задачи</a> |
-        <a href="task/create.php">Добавить задачу</a>
-    </nav>
-    <h1>Последние задачи</h1>
-    
-    <?php if (empty($latestTasks)): ?>
-        <p>Пока нет задач.</p>
-    <?php else: ?>
-        <?php foreach ($latestTasks as $task): ?>
-            <h2><?= htmlspecialchars($task->title) ?></h2>
-            <p>Категория: <?= htmlspecialchars($task->category) ?></p>
-            <p><?= htmlspecialchars($task->description) ?></p>
-            <p>Тэги: <?= implode(', ', array_map('htmlspecialchars', $task->tags)) ?></p>
-            <p>Шаги:</p>
-            <?php if (!empty($task->steps)): ?>
-                <ol>
-                    <?php foreach ($task->steps as $step): ?>
-                        <li><?= htmlspecialchars($step) ?></li>
-                    <?php endforeach; ?>
-                </ol>
-            <?php else: ?>
-                <p>Нет шагов.</p>
-            <?php endif; ?>
-            <hr>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</body>
-</html>
