@@ -4,11 +4,13 @@
  */
 require_once __DIR__ . '/../../db.php';
 
-$pdo = getConnection();
-$id = (int)$_GET['id'];
+$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
-$stmt = $pdo->prepare("DELETE FROM tasks WHERE id = :id");
-$stmt->execute(['id' => $id]);
+if ($id) {
+    $pdo = getDbConnection();
+    $stmt = $pdo->prepare('DELETE FROM tasks WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+}
 
 header('Location: /tasks');
 exit;

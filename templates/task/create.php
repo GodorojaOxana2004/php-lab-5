@@ -1,19 +1,10 @@
-<?php
-/**
- * Шаблон формы создания задачи
- * @var array $categories Список категорий
- * @var array $errors Ошибки валидации
- */
-$title = 'Добавить задачу';
-?>
-
 <h1>Добавить задачу</h1>
 <form method="POST" action="/task/create">
     <div>
         <label>Название:</label><br>
         <input type="text" name="title" value="<?= getFormValue('title') ?>">
         <?php if (isset($errors['title'])): ?>
-            <p class="error"><?= htmlspecialchars($errors['title']) ?></p>
+            <p class="error"><?= $errors['title'] ?></p>
         <?php endif; ?>
     </div>
 
@@ -21,13 +12,13 @@ $title = 'Добавить задачу';
         <label>Категория:</label><br>
         <select name="category_id">
             <?php foreach ($categories as $category): ?>
-                <option value="<?= $category['id'] ?>" <?= isSelected('category_id', $category['id']) ?>>
-                    <?= htmlspecialchars($category['name']) ?>
+                <option value="<?= $category->id ?>" <?= isSelected('category_id', $category->id) ?>>
+                    <?= htmlspecialchars($category->name) ?>
                 </option>
             <?php endforeach; ?>
         </select>
         <?php if (isset($errors['category_id'])): ?>
-            <p class="error"><?= htmlspecialchars PHONE($errors['category_id']) ?></p>
+            <p class="error"><?= $errors['category_id'] ?></p>
         <?php endif; ?>
     </div>
 
@@ -35,7 +26,7 @@ $title = 'Добавить задачу';
         <label>Описание:</label><br>
         <textarea name="description"><?= getFormValue('description') ?></textarea>
         <?php if (isset($errors['description'])): ?>
-            <p class="error"><?= htmlspecialchars($errors['description']) ?></p>
+            <p class="error"><?= $errors['description'] ?></p>
         <?php endif; ?>
     </div>
 

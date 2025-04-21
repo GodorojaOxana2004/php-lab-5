@@ -1,13 +1,8 @@
 <?php
 /**
- * Параметры подключения к базе данных
- * @return array
+ * Конфигурация подключения к базе данных SQLite
+ * @return array Ассоциативный массив с параметрами подключения
  */
 return [
-    'host' => 'localhost',
-    'dbname' => 'task_manager',
-    'port' => '5432',
-    'user' => 'postgres',
-    'password' => 'admin',
+    'dsn' => 'sqlite:' . __DIR__ . '/../storage/tasks.db',
 ];
-?>
